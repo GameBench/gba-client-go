@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+
+	gba "github.com/GameBench/gba-client-go"
 )
 
 func main() {
