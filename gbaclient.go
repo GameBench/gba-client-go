@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type GbaClient struct {
@@ -71,6 +72,22 @@ type StartSessionRequestBody struct {
 }
 
 func New(config *Config) *GbaClient {
+	if os.Getenv("GBA_BASE_URL") != "" {
+		config.BaseUrl = os.Getenv("GBA_BASE_URL")
+	}
+
+	if os.Getenv("GBA_USERNAME") != "" {
+		config.Username = os.Getenv("GBA_USERNAME")
+	}
+
+	if os.Getenv("GBA_PASSWORD") != "" {
+		config.Password = os.Getenv("GBA_PASSWORD")
+	}
+
+	if os.Getenv("GBA_TOKEN") != "" {
+		config.Token = os.Getenv("GBA_TOKEN")
+	}
+
 	client := &http.Client{}
 	return &GbaClient{HttpClient: client, Config: config}
 }
