@@ -2,43 +2,45 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"time"
 )
 
 func main() {
-	config := &Config{BaseUrl: "http://localhost:8000"}
+	config := &Config{BaseUrl: "http://localhost:8000", Username: "ade@gamebench.net", Password: ""}
 	client := New(config)
 
 	devices, err := client.ListDevices()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println(devices)
 
 	device, err := client.GetDevice("HT83G1C00069")
 	if err != nil && err.Error() != "device not found" {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println(device)
 
 	deviceApps, err := client.GetDeviceApps("HT83G1C00069")
 	if err != nil && err.Error() != "device not found" {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println(deviceApps)
 
-	session, err := client.StartSession("foo", "bar")
+	session, err := client.StartSession("HT83G1C00069", "com.codigames.market.idle.tycoon", &StartSessionOptions{AutoSync: true, Screenshots: true})
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println(session)
 
-	err = client.StopSession("foo")
+	time.Sleep(2 * time.Minute)
+
+	err = client.StopSession(session.Id)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
  }

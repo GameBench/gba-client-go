@@ -21,6 +21,29 @@ type Device struct {
 
 type Config struct {
 	BaseUrl string
+	Username string
+	Password string
+	Token string
+}
+
+func (c *Config) UseToken() bool {
+	if c.Token != "" {
+		return true
+	}
+
+	return false
+}
+
+func (c *Config) GetAuthPassword() string {
+	if c.Password != "" {
+		return c.Password
+	}
+
+	if c.Token != "" {
+		return c.Token
+	}
+
+	return ""
 }
 
 type App struct {
@@ -32,8 +55,19 @@ type Session struct {
 	Id string
 }
 
+type StartSessionOptions struct{
+	AutoSync bool
+	Screenshots bool
+}
+
 type StartSessionRequestBody struct{
+	DeviceId string `json:"deviceId"`
+	AppId string `json:"appId"`
 	Username string `json:"username"`
+	PassOrToken string `json:"passOrToken"`
+	UseToken bool `json:"useToken"`
+	AutoSync bool `json:"autoSync"`
+	Screenshots bool `json:"screenshots"`
 }
 
 func New(config *Config) *GbaClient {
@@ -115,10 +149,20 @@ func (c *GbaClient) GetDeviceApps(deviceId string) ([]App, error) {
 	return apps, nil
 }
 
-func (c *GbaClient) StartSession(deviceId string, appId string) (*Session, error) {
+func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSessionOptions) (*Session, error) {
 	var session *Session
 
 	requestBody := &StartSessionRequestBody{
+		DeviceId: deviceId,
+		AppId: appId,
+		Username: c.Config.Username,
+		PassOrToken: c.Config.GetAuthPassword(),
+		UseToken: c.Config.UseToken(),
+	}
+
+	if options != nil {
+		requestBody.AutoSync = options.AutoSync
+		requestBody.Screenshots = options.Screenshots
 	}
 
 	encodedRequestBody, err := json.Marshal(requestBody)
@@ -142,7 +186,16 @@ func (c *GbaClient) StartSession(deviceId string, appId string) (*Session, error
 		return nil, err
 	}
 
-	err = json.Unmarshal(body, session)
+	if resp.StatusCode == 400 || resp.StatusCode == 401 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errorResponse["error"])
+	}
+
+	err = json.Unmarshal(body, &session)
 	if err != nil {
 		return nil, err
 	}
@@ -151,24 +204,12 @@ func (c *GbaClient) StartSession(deviceId string, appId string) (*Session, error
 }
 
 func (c *GbaClient) StopSession(sessionId string) error {
-	var session *Session
-
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions/%s/stop", c.Config.BaseUrl, sessionId), nil)
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(body, session)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
