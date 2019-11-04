@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,10 @@ type App struct {
 
 type Session struct {
 	Id string
+}
+
+type StartSessionRequestBody struct{
+	Username string `json:"username"`
 }
 
 func New(config *Config) *GbaClient {
@@ -113,7 +118,19 @@ func (c *GbaClient) GetDeviceApps(deviceId string) ([]App, error) {
 func (c *GbaClient) StartSession(deviceId string, appId string) (*Session, error) {
 	var session *Session
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions", c.Config.BaseUrl), nil)
+	requestBody := &StartSessionRequestBody{
+	}
+
+	encodedRequestBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions", c.Config.BaseUrl), bytes.NewBuffer(encodedRequestBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
