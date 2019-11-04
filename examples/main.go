@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	gba "github.com/GameBench/gba-client-go"
+	"github.com/GameBench/gba-client-go"
 )
 
 func main() {
-	config := &Config{BaseUrl: "http://localhost:8000", Username: "ade@gamebench.net", Password: ""}
-	client := New(config)
+	config := &gba.Config{BaseUrl: "http://localhost:8000", Username: "ade@gamebench.net", Password: ""}
+	client := gba.New(config)
 
 	devices, err := client.ListDevices()
 	if err != nil {
@@ -32,7 +32,7 @@ func main() {
 
 	fmt.Println(deviceApps)
 
-	session, err := client.StartSession("HT83G1C00069", "com.codigames.market.idle.tycoon", &StartSessionOptions{AutoSync: true, Screenshots: true})
+	session, err := client.StartSession("HT83G1C00069", "com.codigames.market.idle.tycoon", &gba.StartSessionOptions{AutoSync: true, Screenshots: true})
 	if err != nil {
 		panic(err)
 	}
