@@ -11,19 +11,19 @@ import (
 
 type GbaClient struct {
 	HttpClient *http.Client
-	Config *Config
+	Config     *Config
 }
 
 type Device struct {
 	Name string
-	Id string
+	Id   string
 }
 
 type Config struct {
-	BaseUrl string
+	BaseUrl  string
 	Username string
 	Password string
-	Token string
+	Token    string
 }
 
 func (c *Config) UseToken() bool {
@@ -55,19 +55,19 @@ type Session struct {
 	Id string
 }
 
-type StartSessionOptions struct{
-	AutoSync bool
+type StartSessionOptions struct {
+	AutoSync    bool
 	Screenshots bool
 }
 
-type StartSessionRequestBody struct{
-	DeviceId string `json:"deviceId"`
-	AppId string `json:"appId"`
-	Username string `json:"username"`
+type StartSessionRequestBody struct {
+	DeviceId    string `json:"deviceId"`
+	AppId       string `json:"appId"`
+	Username    string `json:"username"`
 	PassOrToken string `json:"passOrToken"`
-	UseToken bool `json:"useToken"`
-	AutoSync bool `json:"autoSync"`
-	Screenshots bool `json:"screenshots"`
+	UseToken    bool   `json:"useToken"`
+	AutoSync    bool   `json:"autoSync"`
+	Screenshots bool   `json:"screenshots"`
 }
 
 func New(config *Config) *GbaClient {
@@ -153,11 +153,11 @@ func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSe
 	var session *Session
 
 	requestBody := &StartSessionRequestBody{
-		DeviceId: deviceId,
-		AppId: appId,
-		Username: c.Config.Username,
+		DeviceId:    deviceId,
+		AppId:       appId,
+		Username:    c.Config.Username,
 		PassOrToken: c.Config.GetAuthPassword(),
-		UseToken: c.Config.UseToken(),
+		UseToken:    c.Config.UseToken(),
 	}
 
 	if options != nil {
