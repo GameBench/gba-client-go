@@ -230,3 +230,14 @@ func (c *GbaClient) StopSession(sessionId string) error {
 
 	return nil
 }
+
+func (c *GbaClient) Sync() error {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions/sync", c.Config.BaseUrl), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
+}
