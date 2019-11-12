@@ -241,3 +241,44 @@ func (c *GbaClient) Sync() error {
 
 	return nil
 }
+
+func (c *GbaClient) GetProperties() (map[string]interface{}, error) {
+	properties := make(map[string]interface{})
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/properties", c.Config.BaseUrl), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &properties)
+	if err != nil {
+		return nil, err
+	}
+
+	return properties, nil
+}
+
+func (c *GbaClient) SetProperty(key string, value interface{}) (error) {
+	requestBody := make(map[string]interface{})
+	requestBody["value"] = value
+
+	encodedRequestBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/properties/%s", c.Config.BaseUrl, key), bytes.NewBuffer(encodedRequestBody))
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
