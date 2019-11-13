@@ -282,3 +282,87 @@ func (c *GbaClient) SetProperty(key string, value interface{}) (error) {
 	defer resp.Body.Close()
 	return nil
 }
+
+func (c *GbaClient) GenerateSessionJson(sessionPath string, targetPath string) error {
+	requestBody := make(map[string]interface{})
+	requestBody["sessionPath"] = sessionPath
+	requestBody["targetPath"] = targetPath
+
+	encodedRequestBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/generate-json", c.Config.BaseUrl), bytes.NewBuffer(encodedRequestBody))
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(errorResponse["error"])
+	}
+
+	return nil
+}
+
+func (c *GbaClient) EnableWifiProf(deviceId string) error {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/devices/%s/enable-wifi-prof", c.Config.BaseUrl, deviceId), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(errorResponse["error"])
+	}
+
+	return nil
+}
+
+func (c *GbaClient) DisableWifiProf(deviceId string) error {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/devices/%s/disable-wifi-prof", c.Config.BaseUrl, deviceId), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(errorResponse["error"])
+	}
+
+	return nil
+}
