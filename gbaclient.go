@@ -22,29 +22,6 @@ type Device struct {
 
 type Config struct {
 	BaseUrl  string
-	Username string
-	Password string
-	Token    string
-}
-
-func (c *Config) UseToken() bool {
-	if c.Token != "" {
-		return true
-	}
-
-	return false
-}
-
-func (c *Config) GetAuthPassword() string {
-	if c.Password != "" {
-		return c.Password
-	}
-
-	if c.Token != "" {
-		return c.Token
-	}
-
-	return ""
 }
 
 type App struct {
@@ -64,9 +41,6 @@ type StartSessionOptions struct {
 type StartSessionRequestBody struct {
 	DeviceId    string `json:"deviceId"`
 	AppId       string `json:"appId"`
-	Username    string `json:"username"`
-	PassOrToken string `json:"passOrToken"`
-	UseToken    bool   `json:"useToken"`
 	AutoSync    bool   `json:"autoSync"`
 	Screenshots bool   `json:"screenshots"`
 }
@@ -74,18 +48,6 @@ type StartSessionRequestBody struct {
 func New(config *Config) *GbaClient {
 	if os.Getenv("GBA_BASE_URL") != "" {
 		config.BaseUrl = os.Getenv("GBA_BASE_URL")
-	}
-
-	if os.Getenv("GBA_USERNAME") != "" {
-		config.Username = os.Getenv("GBA_USERNAME")
-	}
-
-	if os.Getenv("GBA_PASSWORD") != "" {
-		config.Password = os.Getenv("GBA_PASSWORD")
-	}
-
-	if os.Getenv("GBA_TOKEN") != "" {
-		config.Token = os.Getenv("GBA_TOKEN")
 	}
 
 	client := &http.Client{}
@@ -192,9 +154,6 @@ func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSe
 	requestBody := &StartSessionRequestBody{
 		DeviceId:    deviceId,
 		AppId:       appId,
-		Username:    c.Config.Username,
-		PassOrToken: c.Config.GetAuthPassword(),
-		UseToken:    c.Config.UseToken(),
 	}
 
 	if options != nil {
