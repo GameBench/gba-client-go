@@ -8,7 +8,7 @@ Please note this will only work with GBA version v1.5.0 or greater.
 import "github.com/GameBench/gba-client-go"
 
 func main() {
-	config := &gba.Config{BaseUrl: "http://localhost:8000", Username: "ade@gamebench.net", Password: ""}
+	config := &gba.Config{BaseUrl: "http://localhost:8000"}
 	client := gba.New(config)
 }
 ```
@@ -17,8 +17,6 @@ Alternatively, use env vars for configuration
 
 ```
 GBA_BASE_URL=
-GBA_USERNAME=
-GBA_PASSWORD=
 ```
 
 ### List devices
