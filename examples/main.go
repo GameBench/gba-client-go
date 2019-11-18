@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	config := &gba.Config{BaseUrl: "http://localhost:8000", Username: "ade@gamebench.net", Password: ""}
+	config := &gba.Config{BaseUrl: "http://localhost:8000"}
 	client := gba.New(config)
 
 	devices, err := client.ListDevices()
