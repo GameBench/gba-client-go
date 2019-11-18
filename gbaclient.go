@@ -166,6 +166,26 @@ func (c *GbaClient) GetDeviceApps(deviceId string) ([]App, error) {
 	return apps, nil
 }
 
+func (c *GbaClient) ListSessions() ([]Session, error) {
+	sessions := make([]Session, 0)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/sessions", c.Config.BaseUrl), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	json.Unmarshal(body, &sessions)
+
+	return sessions, nil
+}
+
 func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSessionOptions) (*Session, error) {
 	var session *Session
 
