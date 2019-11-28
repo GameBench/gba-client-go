@@ -244,21 +244,33 @@ func (c *GbaClient) GetProperties() (map[string]interface{}, error) {
 	return properties, nil
 }
 
-func (c *GbaClient) SetProperty(key string, value interface{}) (error) {
-	requestBody := make(map[string]interface{})
-	requestBody["value"] = value
-
+func (c *GbaClient) SetProperties(requestBody map[string]interface{}) error {
 	encodedRequestBody, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/properties/%s", c.Config.BaseUrl, key), bytes.NewBuffer(encodedRequestBody))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/properties", c.Config.BaseUrl), bytes.NewBuffer(encodedRequestBody))
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(errorResponse["error"])
+	}
+
 	return nil
 }
 
