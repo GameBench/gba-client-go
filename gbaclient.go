@@ -45,6 +45,14 @@ type StartSessionRequestBody struct {
 	Screenshots bool   `json:"screenshots"`
 }
 
+type StopSessionOptions struct {
+	IncludeSessionJsonInResponse bool
+}
+
+type StopSessionRequestBody struct {
+	IncludeSessionJsonInResponse bool `json:"includeSessionJsonInResponse"`
+}
+
 func New(config *Config) *GbaClient {
 	if os.Getenv("GBA_BASE_URL") != "" {
 		config.BaseUrl = os.Getenv("GBA_BASE_URL")
@@ -199,15 +207,37 @@ func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSe
 	return session, nil
 }
 
-func (c *GbaClient) StopSession(sessionId string) error {
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions/%s/stop", c.Config.BaseUrl, sessionId), nil)
+func (c *GbaClient) StopSession(sessionId string, options *StopSessionOptions) (*string, error) {
+	requestBody := &StopSessionRequestBody{}
+
+	if options != nil {
+		requestBody.IncludeSessionJsonInResponse = options.IncludeSessionJsonInResponse;
+	}
+
+	encodedRequestBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/sessions/%s/stop", c.Config.BaseUrl, sessionId), bytes.NewBuffer(encodedRequestBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	return nil
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	stringBody := string(body)
+
+	return &stringBody, nil
 }
 
 func (c *GbaClient) Sync() error {
