@@ -53,6 +53,12 @@ type StopSessionRequestBody struct {
 	IncludeSessionJsonInResponse bool `json:"includeSessionJsonInResponse"`
 }
 
+type ServerVersionInfo struct {
+	MajorVersion string `json:"majorVersion"`
+	BuildNumber int `json:"buildNumber"`
+	CommitHash string `json:"commitHash"`
+}
+
 func New(config *Config) *GbaClient {
 	if os.Getenv("GBA_BASE_URL") != "" {
 		config.BaseUrl = os.Getenv("GBA_BASE_URL")
@@ -386,4 +392,36 @@ func (c *GbaClient) DisableWifiProf(deviceId string) error {
 	}
 
 	return nil
+}
+
+func (c *GbaClient) GetServerVersionInfo() (*ServerVersionInfo, error) {
+	var serverVersionInfo ServerVersionInfo
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/version", c.Config.BaseUrl), nil)
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errorResponse["error"])
+	}
+
+	err = json.Unmarshal(body, &serverVersionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &serverVersionInfo, nil
 }
