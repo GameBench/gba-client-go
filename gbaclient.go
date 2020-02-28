@@ -53,6 +53,14 @@ type StopSessionRequestBody struct {
 	IncludeSessionJsonInResponse bool `json:"includeSessionJsonInResponse"`
 }
 
+type ExecuteShellCommandRequestBody struct {
+	Command string `json:"command"`
+}
+
+type ExecuteShellCommandResponseBody struct {
+	Output string `json:"output"`
+}
+
 type ServerVersionInfo struct {
 	MajorVersion string `json:"majorVersion"`
 	BuildNumber int `json:"buildNumber"`
@@ -424,4 +432,49 @@ func (c *GbaClient) GetServerVersionInfo() (*ServerVersionInfo, error) {
 	}
 
 	return &serverVersionInfo, nil
+}
+
+func (c *GbaClient) ExecuteShellCommandOnDevice(deviceId, command string) (*string, error) {
+	requestBody := &ExecuteShellCommandRequestBody{
+		Command: command,
+	}
+
+	encodedRequestBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/devices/%s/shell", c.Config.BaseUrl, deviceId), bytes.NewBuffer(encodedRequestBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
+		var errorResponse map[string]string
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errorResponse["error"])
+	}
+
+	responseBody := &ExecuteShellCommandResponseBody{}
+
+	err = json.Unmarshal(body, &responseBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return &responseBody.Output, nil
 }
