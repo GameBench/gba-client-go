@@ -47,10 +47,12 @@ type StartSessionRequestBody struct {
 
 type StopSessionOptions struct {
 	IncludeSessionJsonInResponse bool
+	OutputDir string
 }
 
 type StopSessionRequestBody struct {
 	IncludeSessionJsonInResponse bool `json:"includeSessionJsonInResponse"`
+	OutputDir *string `json:"outputDir"`
 }
 
 type ExecuteShellCommandRequestBody struct {
@@ -226,6 +228,10 @@ func (c *GbaClient) StopSession(sessionId string, options *StopSessionOptions) (
 
 	if options != nil {
 		requestBody.IncludeSessionJsonInResponse = options.IncludeSessionJsonInResponse;
+
+		if options.OutputDir != "" {
+			requestBody.OutputDir = &options.OutputDir
+		}
 	}
 
 	encodedRequestBody, err := json.Marshal(requestBody)
