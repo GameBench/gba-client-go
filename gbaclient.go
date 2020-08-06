@@ -36,6 +36,7 @@ type Session struct {
 type StartSessionOptions struct {
 	AutoSync    bool
 	Screenshots bool
+	Tags		map[string]string
 }
 
 type StartSessionRequestBody struct {
@@ -43,6 +44,7 @@ type StartSessionRequestBody struct {
 	AppId       string `json:"appId"`
 	AutoSync    bool   `json:"autoSync"`
 	Screenshots bool   `json:"screenshots"`
+	Tags		map[string]string   `json:"tags"`
 }
 
 type StopSessionOptions struct {
@@ -183,6 +185,9 @@ func (c *GbaClient) StartSession(deviceId string, appId string, options *StartSe
 	if options != nil {
 		requestBody.AutoSync = options.AutoSync
 		requestBody.Screenshots = options.Screenshots
+		if options.Tags != nil {
+			requestBody.Tags = options.Tags
+		}
 	}
 
 	encodedRequestBody, err := json.Marshal(requestBody)
